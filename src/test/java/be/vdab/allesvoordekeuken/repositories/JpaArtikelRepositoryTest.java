@@ -27,13 +27,13 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	private JpaArtikelRepository repository;
 	
 	private long getIdVanTestArtikel() {
-		return super.jdbcTemplate.queryForObject("select id from artikels where naam='testM'", Long.class);
+		return super.jdbcTemplate.queryForObject("select id from artikels where naam='test'", Long.class);
 	}
 	
 	@Test
 	public void read() {
 		Artikel artikel = repository.read(getIdVanTestArtikel()).get();
-		assertEquals("testM", artikel.getNaam());
+		assertEquals("test", artikel.getNaam());
 	}
 	
 	@Test
