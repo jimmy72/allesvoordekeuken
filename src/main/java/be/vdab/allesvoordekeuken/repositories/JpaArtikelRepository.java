@@ -22,4 +22,9 @@ class JpaArtikelRepository implements ArtikelRepository {
 		return Optional.ofNullable(manager.find(Artikel.class, id));
 	}
 
+	@Override
+	public void create(Artikel artikel) {
+		manager.persist(artikel);
+	}
+
 }
