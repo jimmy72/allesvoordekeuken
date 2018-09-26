@@ -76,6 +76,15 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 			assertTrue(artikel.getNaam().compareTo("aap") >= 0);
 			assertTrue(artikel.getNaam().compareTo("zombie") <= 0);
 		});
+	}
+	
+	@Test
+	public void algemenePrijsverhoging() {
+		int aantalVerhoogd = repository.algemenePrijsverhoging(BigDecimal.valueOf(10));
+		assertEquals(super.countRowsInTable(ARTIKELS), aantalVerhoogd);
 		
+		BigDecimal nieuwePrijs = super.jdbcTemplate.queryForObject(
+				"select verkoopprijs from artikels where id=?", BigDecimal.class, getIdVanTestArtikel());
+		assertEquals(0, BigDecimal.valueOf(7.7).compareTo(nieuwePrijs));
 	}
 }
