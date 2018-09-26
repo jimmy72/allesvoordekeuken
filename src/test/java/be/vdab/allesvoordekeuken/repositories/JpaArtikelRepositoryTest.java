@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -61,5 +62,20 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 		assertNotEquals(0, artikel.getId());
 		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + artikel.getId()));
 		assertTrue(repository.read(artikel.getId()).get().getVerkoopprijs().compareTo(BigDecimal.valueOf(147.5)) == 0);
+	}
+	
+	@Test
+	public void findArtikelsMetWoord() {
+		List<Artikel> artikelsMetEsInNaam = repository.findArtikelsMetWoord("es");
+		long aantalArtikelsMetEs = super.countRowsInTableWhere(ARTIKELS, "naam like '%es%'");
+		//long aantalArtikels = super.jdbcTemplate.queryForObject("select count(*) from artikels where naam like '%es%'", Long.class);
+		long totaalAantalArtikels = super.countRowsInTable(ARTIKELS);
+		assertTrue(2 == totaalAantalArtikels);
+		assertEquals(artikelsMetEsInNaam.size(), aantalArtikelsMetEs);
+		artikelsMetEsInNaam.forEach(artikel -> {
+			assertTrue(artikel.getNaam().compareTo("aap") >= 0);
+			assertTrue(artikel.getNaam().compareTo("zombie") <= 0);
+		});
+		
 	}
 }

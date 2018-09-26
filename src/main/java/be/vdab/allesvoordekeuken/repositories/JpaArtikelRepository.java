@@ -1,5 +1,6 @@
 package be.vdab.allesvoordekeuken.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
@@ -25,6 +26,13 @@ class JpaArtikelRepository implements ArtikelRepository {
 	@Override
 	public void create(Artikel artikel) {
 		manager.persist(artikel);
+	}
+
+	@Override
+	public List<Artikel> findArtikelsMetWoord(String woord) {
+		return manager.createNamedQuery("Artikel.findArtikelsMetWoord", Artikel.class)
+				.setParameter("zoals", "%" + woord + "%")
+				.getResultList();
 	}
 
 }
