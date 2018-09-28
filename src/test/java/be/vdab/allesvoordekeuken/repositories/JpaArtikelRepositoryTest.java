@@ -21,6 +21,8 @@ import org.springframework.test.context.junit4.AbstractTransactionalJUnit4Spring
 import org.springframework.test.context.junit4.SpringRunner;
 
 import be.vdab.allesvoordekeuken.entities.Artikel;
+import be.vdab.allesvoordekeuken.entities.FoodArtikel;
+import be.vdab.allesvoordekeuken.entities.NonFoodArtikel;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
@@ -32,21 +34,33 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	@Autowired
 	private JpaArtikelRepository repository;
 	private static final String ARTIKELS = "artikels";
-	private Artikel artikel;
+	private Artikel foodArtikel;
+	private Artikel nonFoodArtikel;
 	
 	@Before
 	public void before() {
-		artikel = new Artikel("test", BigDecimal.valueOf(100), BigDecimal.valueOf(147.5));
+		foodArtikel = new FoodArtikel("testBanaan", BigDecimal.valueOf(1.5), BigDecimal.valueOf(1.9), 15);
+		nonFoodArtikel = new NonFoodArtikel("testBlender", BigDecimal.valueOf(10.5), BigDecimal.valueOf(14.9), 24);
 	}
 	
-	private long getIdVanTestArtikel() {
-		return super.jdbcTemplate.queryForObject("select id from artikels where naam='test'", Long.class);
+	private long idVanTestFoodArtikel() {
+		return super.jdbcTemplate.queryForObject("select id from artikels where naam='testFood'", Long.class);
+	}
+	
+	private long idVanTestNonFoodArtikel() {
+		return super.jdbcTemplate.queryForObject("select id from artikels where naam='testNonFood'", Long.class);
 	}
 	
 	@Test
-	public void read() {
-		artikel = repository.read(getIdVanTestArtikel()).get();
-		assertEquals("test", artikel.getNaam());
+	public void readFoodArtikel() {
+		FoodArtikel artikel = (FoodArtikel) repository.read(idVanTestFoodArtikel()).get();
+		assertEquals("testFood", artikel.getNaam());
+	}
+	
+	@Test
+	public void readNonFoodArtikel() {
+		NonFoodArtikel artikel = (NonFoodArtikel) repository.read(idVanTestNonFoodArtikel()).get();
+		assertEquals("testNonFood", artikel.getNaam());
 	}
 	
 	@Test
@@ -55,13 +69,23 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	}
 	
 	@Test
-	public void createArtikel() {
-		int aantalArtikels = super.countRowsInTable(ARTIKELS);
-		repository.create(artikel);
-		assertEquals(aantalArtikels + 1, super.countRowsInTable(ARTIKELS));
-		assertNotEquals(0, artikel.getId());
-		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + artikel.getId()));
-		assertTrue(repository.read(artikel.getId()).get().getVerkoopprijs().compareTo(BigDecimal.valueOf(147.5)) == 0);
+	public void createFoodArtikel() {
+		int aantalFoodArtikels = super.countRowsInTableWhere(ARTIKELS, "soort='F'");
+		repository.create(foodArtikel);
+		assertEquals(aantalFoodArtikels + 1, super.countRowsInTableWhere(ARTIKELS, "soort='F'"));
+		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + foodArtikel.getId()));
+		assertTrue(repository.read(foodArtikel.getId()).get().getVerkoopprijs().compareTo(BigDecimal.valueOf(1.9)) == 0);
+		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + foodArtikel.getId()));
+	}
+	
+	@Test
+	public void createNonFoodArtikel() {
+		int aantalNonFoodArtikels = super.countRowsInTableWhere(ARTIKELS, "soort='NF'");
+		repository.create(nonFoodArtikel);
+		assertEquals(aantalNonFoodArtikels + 1, super.countRowsInTableWhere(ARTIKELS, "soort='NF'"));
+		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + nonFoodArtikel.getId()));
+		assertTrue(repository.read(nonFoodArtikel.getId()).get().getVerkoopprijs().compareTo(BigDecimal.valueOf(14.9)) == 0);
+		assertEquals(1, super.countRowsInTableWhere(ARTIKELS, "id=" + nonFoodArtikel.getId()));
 	}
 	
 	@Test
@@ -69,13 +93,15 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 		List<Artikel> artikelsMetEsInNaam = repository.findArtikelsMetWoord("es");
 		long aantalArtikelsMetEs = super.countRowsInTableWhere(ARTIKELS, "naam like '%es%'");
 		//long aantalArtikels = super.jdbcTemplate.queryForObject("select count(*) from artikels where naam like '%es%'", Long.class);
-		long totaalAantalArtikels = super.countRowsInTable(ARTIKELS);
-		assertTrue(2 == totaalAantalArtikels);
 		assertEquals(artikelsMetEsInNaam.size(), aantalArtikelsMetEs);
-		artikelsMetEsInNaam.forEach(artikel -> {
-			assertTrue(artikel.getNaam().compareTo("aap") >= 0);
-			assertTrue(artikel.getNaam().compareTo("zombie") <= 0);
-		});
+		
+		String vorigeNaam = "";
+		for(Artikel artikel : artikelsMetEsInNaam) {
+			String naam = artikel.getNaam();
+			assertTrue(naam.toLowerCase().contains("es"));
+			assertTrue(vorigeNaam.compareToIgnoreCase(naam) <= 0);
+			vorigeNaam = naam;
+		}
 	}
 	
 	@Test
@@ -84,7 +110,7 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 		assertEquals(super.countRowsInTable(ARTIKELS), aantalVerhoogd);
 		
 		BigDecimal nieuwePrijs = super.jdbcTemplate.queryForObject(
-				"select verkoopprijs from artikels where id=?", BigDecimal.class, getIdVanTestArtikel());
-		assertEquals(0, BigDecimal.valueOf(7.7).compareTo(nieuwePrijs));
+				"select verkoopprijs from artikels where id=?", BigDecimal.class, idVanTestNonFoodArtikel());
+		assertEquals(0, BigDecimal.valueOf(137.5).compareTo(nieuwePrijs));
 	}
 }
