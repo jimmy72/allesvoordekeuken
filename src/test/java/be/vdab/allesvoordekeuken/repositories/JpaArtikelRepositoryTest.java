@@ -113,4 +113,10 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 				"select verkoopprijs from artikels where id=?", BigDecimal.class, idVanTestNonFoodArtikel());
 		assertEquals(0, BigDecimal.valueOf(137.5).compareTo(nieuwePrijs));
 	}
+	
+	@Test
+	public void kortingLezenLukt() {
+		FoodArtikel fa = (FoodArtikel) repository.read(idVanTestFoodArtikel()).get();
+		assertEquals(1, fa.getKortingen().size());
+	}
 }
