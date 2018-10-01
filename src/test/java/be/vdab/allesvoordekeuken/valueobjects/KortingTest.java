@@ -37,7 +37,7 @@ public class KortingTest {
 	
 	@Test
 	public void vanafAantalMagNullZijn() {
-		new Korting(0 , BigDecimal.ONE);
+		new Korting( 0, BigDecimal.ONE);
 	}
 	
 	@Test
