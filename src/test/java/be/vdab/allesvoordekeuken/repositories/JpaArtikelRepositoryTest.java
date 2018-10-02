@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigDecimal;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,26 +23,32 @@ import org.springframework.test.context.junit4.AbstractTransactionalJUnit4Spring
 import org.springframework.test.context.junit4.SpringRunner;
 
 import be.vdab.allesvoordekeuken.entities.Artikel;
+import be.vdab.allesvoordekeuken.entities.ArtikelGroep;
 import be.vdab.allesvoordekeuken.entities.FoodArtikel;
 import be.vdab.allesvoordekeuken.entities.NonFoodArtikel;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@Sql("/insertArtikelGroep.sql")
 @Sql("/insertArtikel.sql")
 @Import(JpaArtikelRepository.class)
 public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringContextTests{
 	
 	@Autowired
 	private JpaArtikelRepository repository;
+	@Autowired
+	private EntityManager manager;
 	private static final String ARTIKELS = "artikels";
 	private Artikel foodArtikel;
 	private Artikel nonFoodArtikel;
+	private ArtikelGroep artikelGroep;
 	
 	@Before
 	public void before() {
-		foodArtikel = new FoodArtikel("testBanaan", BigDecimal.valueOf(1.5), BigDecimal.valueOf(1.9), 15);
-		nonFoodArtikel = new NonFoodArtikel("testBlender", BigDecimal.valueOf(10.5), BigDecimal.valueOf(14.9), 24);
+		artikelGroep = new ArtikelGroep("testgroep");
+		foodArtikel = new FoodArtikel("testBanaan", BigDecimal.valueOf(1.5), BigDecimal.valueOf(1.9), 15, artikelGroep);
+		nonFoodArtikel = new NonFoodArtikel("testBlender", BigDecimal.valueOf(10.5), BigDecimal.valueOf(14.9), 24, artikelGroep);
 	}
 	
 	private long idVanTestFoodArtikel() {
@@ -70,6 +78,7 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	
 	@Test
 	public void createFoodArtikel() {
+		manager.persist(artikelGroep);
 		int aantalFoodArtikels = super.countRowsInTableWhere(ARTIKELS, "soort='F'");
 		repository.create(foodArtikel);
 		assertEquals(aantalFoodArtikels + 1, super.countRowsInTableWhere(ARTIKELS, "soort='F'"));
@@ -80,6 +89,7 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	
 	@Test
 	public void createNonFoodArtikel() {
+		manager.persist(artikelGroep);
 		int aantalNonFoodArtikels = super.countRowsInTableWhere(ARTIKELS, "soort='NF'");
 		repository.create(nonFoodArtikel);
 		assertEquals(aantalNonFoodArtikels + 1, super.countRowsInTableWhere(ARTIKELS, "soort='NF'"));
@@ -118,5 +128,11 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	public void kortingLezenLukt() {
 		FoodArtikel fa = (FoodArtikel) repository.read(idVanTestFoodArtikel()).get();
 		assertEquals(1, fa.getKortingen().size());
+	}
+	
+	@Test
+	public void artikelGroepLazyLoaded() {
+		Artikel artikel = repository.read(idVanTestFoodArtikel()).get();
+		assertEquals("test", artikel.getArtikelGroep().getNaam());
 	}
 }

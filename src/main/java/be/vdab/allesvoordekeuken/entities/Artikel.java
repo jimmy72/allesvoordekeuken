@@ -7,16 +7,17 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.persistence.CollectionTable;
-import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
@@ -40,19 +41,21 @@ public abstract class Artikel implements Serializable {
 	@CollectionTable(name = "kortingen", joinColumns = @JoinColumn(name = "artikelid")) 
 	@OrderBy("percentage")
 	private Set<Korting> kortingen;
+	@ManyToOne(fetch = FetchType.LAZY, optional = false) 
+	@JoinColumn(name = "artikelgroepid") 
+	private ArtikelGroep artikelGroep;
 	
 	protected Artikel() {
 	}
 	
-	public Artikel(String naam, BigDecimal aankoopprijs, BigDecimal verkoopprijs) {
+	public Artikel(String naam, BigDecimal aankoopprijs, BigDecimal verkoopprijs, ArtikelGroep artikelGroep) {
 		this.naam = naam;
 		this.aankoopprijs = aankoopprijs;
 		this.verkoopprijs = verkoopprijs;
 		this.kortingen = new LinkedHashSet<>();
+		this.setArtikelGroep(artikelGroep);
 	}
-	
-	
-	
+		
 	public Set<Korting> getKortingen() {
 		return Collections.unmodifiableSet(this.kortingen);
 	}
@@ -96,5 +99,46 @@ public abstract class Artikel implements Serializable {
 	public void setVerkoopprijs(BigDecimal verkoopprijs) {
 		this.verkoopprijs = verkoopprijs;
 	}
+
+	public ArtikelGroep getArtikelGroep() {
+		return artikelGroep;
+	}
+
+	public void setArtikelGroep(ArtikelGroep artikelGroep) {
+		if(artikelGroep == null) {
+			throw new NullPointerException();
+		}
 		
+		if(!artikelGroep.getArtikels().contains(this)) {
+			artikelGroep.addArtikel(this);
+		}
+		this.artikelGroep = artikelGroep;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((naam == null) ? 0 : naam.toUpperCase().hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Artikel))
+			return false;
+		Artikel other = (Artikel) obj;
+		if (naam == null) {
+			if (other.naam != null)
+				return false;
+		} else if (!naam.equalsIgnoreCase(other.naam))
+			return false;
+		return true;
+	}
+		
+	
 }
