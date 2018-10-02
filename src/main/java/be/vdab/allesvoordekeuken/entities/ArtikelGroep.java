@@ -22,7 +22,7 @@ public class ArtikelGroep implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 	private String naam;
-	@OneToMany(mappedBy = "artikelGroep") 
+	@OneToMany(mappedBy = "artikelGroep")//naam van private member ArtikelGroep in class Artikel 
 	@OrderBy("naam") 
 	private Set<Artikel> artikels;
 	
