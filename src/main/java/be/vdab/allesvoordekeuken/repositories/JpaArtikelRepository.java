@@ -33,6 +33,7 @@ class JpaArtikelRepository implements ArtikelRepository {
 	public List<Artikel> findArtikelsMetWoord(String woord) {
 		return manager.createNamedQuery("Artikel.findArtikelsMetWoord", Artikel.class)
 				.setParameter("zoals", "%" + woord + "%")
+				.setHint("javax.persistence.loadgraph", manager.createEntityGraph(Artikel.MET_ARTIKELGROEP))
 				.getResultList();
 	}
 

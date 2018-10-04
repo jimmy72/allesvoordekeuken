@@ -101,6 +101,7 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 	@Test
 	public void findArtikelsMetWoord() {
 		List<Artikel> artikelsMetEsInNaam = repository.findArtikelsMetWoord("es");
+		manager.clear();
 		long aantalArtikelsMetEs = super.countRowsInTableWhere(ARTIKELS, "naam like '%es%'");
 		//long aantalArtikels = super.jdbcTemplate.queryForObject("select count(*) from artikels where naam like '%es%'", Long.class);
 		assertEquals(artikelsMetEsInNaam.size(), aantalArtikelsMetEs);
@@ -108,6 +109,7 @@ public class JpaArtikelRepositoryTest extends AbstractTransactionalJUnit4SpringC
 		String vorigeNaam = "";
 		for(Artikel artikel : artikelsMetEsInNaam) {
 			String naam = artikel.getNaam();
+			System.out.println(artikel.getNaam() + " " + artikel.getArtikelGroep().getNaam());
 			assertTrue(naam.toLowerCase().contains("es"));
 			assertTrue(vorigeNaam.compareToIgnoreCase(naam) <= 0);
 			vorigeNaam = naam;
